@@ -40,3 +40,24 @@
 .read-the-docs {
   color: #888;
 }
+
+/* highlight colors per user */
+.highlight-red {
+  background-color: rgba(255, 99, 132, 0.4);
+}
+
+.highlight-blue {
+  background-color: rgba(54, 162, 235, 0.4);
+}
+
+.highlight-green {
+  background-color: rgba(75, 192, 192, 0.4);
+}
+
+.highlight-yellow {
+  background-color: rgba(255, 206, 86, 0.4);
+}
+
+.highlight-purple {
+  background-color: rgba(153, 102, 255, 0.4);
+}
