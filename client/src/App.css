@@ -41,23 +41,64 @@
   color: #888;
 }
 
-/* highlight colors per user */
-.highlight-red {
-  background-color: rgba(255, 99, 132, 0.4);
+/* inline border effect */
+.highlight-inline-red {
+  background-color: rgba(255, 0, 0, 0.2);
+  outline: 2px solid red;
+  border-radius: 2px;
 }
 
-.highlight-blue {
-  background-color: rgba(54, 162, 235, 0.4);
+.highlight-inline-blue {
+  background-color: rgba(0, 0, 255, 0.2);
+  outline: 2px solid blue;
+  border-radius: 2px;
 }
 
-.highlight-green {
-  background-color: rgba(75, 192, 192, 0.4);
+.highlight-inline-green {
+  background-color: rgba(0, 255, 0, 0.2);
+  outline: 2px solid green;
+  border-radius: 2px;
 }
 
-.highlight-yellow {
-  background-color: rgba(255, 206, 86, 0.4);
+.highlight-inline-yellow {
+  background-color: rgba(255, 255, 0, 0.2);
+  outline: 2px solid orange;
+  border-radius: 2px;
 }
 
-.highlight-purple {
-  background-color: rgba(153, 102, 255, 0.4);
+.highlight-inline-purple {
+  background-color: rgba(128, 0, 128, 0.2);
+  outline: 2px solid purple;
+  border-radius: 2px;
+}
+
+/* labels after highlight */
+.highlight-label-red {
+  color: red;
+  font-size: 10px;
+  margin-left: 4px;
+}
+
+.highlight-label-blue {
+  color: blue;
+  font-size: 10px;
+  margin-left: 4px;
+}
+
+.highlight-label-green {
+  color: green;
+  font-size: 10px;
+  margin-left: 4px;
+}
+
+.highlight-label-yellow {
+  color: orange;
+  font-size: 10px;
+  margin-left: 4px;
+}
+
+.highlight-label-purple {
+  color: purple;
+  font-size: 10px;
+  margin-left: 4px;
 }

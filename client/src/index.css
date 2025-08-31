@@ -118,3 +118,59 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* User highlight styles for collaborative editing */
+.highlight-inline-red {
+  background-color: rgba(239, 68, 68, 0.3) !important;
+  border-left: 3px solid #ef4444 !important;
+}
+
+.highlight-inline-blue {
+  background-color: rgba(59, 130, 246, 0.3) !important;
+  border-left: 3px solid #3b82f6 !important;
+}
+
+.highlight-inline-green {
+  background-color: rgba(34, 197, 94, 0.3) !important;
+  border-left: 3px solid #22c55e !important;
+}
+
+.highlight-inline-yellow {
+  background-color: rgba(234, 179, 8, 0.3) !important;
+  border-left: 3px solid #eab308 !important;
+}
+
+.highlight-inline-purple {
+  background-color: rgba(168, 85, 247, 0.3) !important;
+  border-left: 3px solid #a855f7 !important;
+}
+
+.highlight-label-red {
+  color: #ef4444 !important;
+  font-weight: bold !important;
+  font-size: 10px !important;
+}
+
+.highlight-label-blue {
+  color: #3b82f6 !important;
+  font-weight: bold !important;
+  font-size: 10px !important;
+}
+
+.highlight-label-green {
+  color: #22c55e !important;
+  font-weight: bold !important;
+  font-size: 10px !important;
+}
+
+.highlight-label-yellow {
+  color: #eab308 !important;
+  font-weight: bold !important;
+  font-size: 10px !important;
+}
+
+.highlight-label-purple {
+  color: #a855f7 !important;
+  font-weight: bold !important;
+  font-size: 10px !important;
+}
