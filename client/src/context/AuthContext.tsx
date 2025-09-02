@@ -1,110 +1,54 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
-import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { supabase } from "../lib/supabaseClient";
+import { createContext, useContext, useState, useEffect, useMemo } from "react";
+import type { User as SupabaseUser, Session } from "@supabase/supabase-js";
 
-type User = SupabaseUser | null;
+type SessionUser = {
+  id: string;
+  name: string;
+  email?: string | null;
+  isGuest: boolean;
+};
 
 interface AuthContextType {
-  user: User;
-  error: string | null;
-  signUp: (email: string, password: string) => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
+  user: SessionUser | null;
+  signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
-  clearError: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const getSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data.session) {
-        setUser(data.session.user);
-      }
-    };
-
-    getSession();
-
-    const { data: subscription } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user ?? null);
-      }
-    );
-
-    return () => {
-      subscription.subscription.unsubscribe();
-    };
-  }, []);
-
-  const signUp = async (email: string, password: string) => {
-    try {
-            
-        const { data, error } = await supabase.auth.signUp({
-          email: email.trim(),
-          password,
-        });
-    
-        if (error) {
-          console.error("Signup error:", error.message);
-          alert(error.message); // or show in UI
-          return;
-        }
-    
-        console.log("Signup success:", data);
-        alert("Signup successful! Check your email for confirmation.");
-      } catch (err: any) {
-        console.error("Unexpected error:", err.message);
-        alert("Something went wrong. Try again later.");
-      }
+function makeGuestUser(): SessionUser {
+  const existing = localStorage.getItem("guest_user");
+  if (existing) {
+    return JSON.parse(existing);
+  }
+  const short = Math.random().toString(36).slice(2, 6);
+  const guest: SessionUser = {
+    id: `guest_${crypto.randomUUID?.() ?? short}`,
+    name: `Anonymous-${short}`,
+    email: null,
+    isGuest: true,
   };
+  localStorage.setItem("guest_user", JSON.stringify(guest));
+  return guest;
+}
 
-  const signIn = async (email: string, password: string) => {
-    try {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-      
-        if (error) {
-          if (error.message.includes("Email not confirmed")) {
-            alert("Please confirm your email before logging in.");
-          } else {
-            alert("Login failed: " + error.message);
-          }
-        } else {
-          console.log("Login success", data);
-        }
-      } catch (err) {
-        console.error("Unexpected error:", err);
-      }
+function toSessionUser(session: Session | null): SessionUser | null {
+  const u: SupabaseUser | null = session?.user ?? null;
+  if (!u) return null;
+
+  const meta = (u.user_metadata ?? {}) as Record<string, any>;
+  const name =
+    meta.full_name ||
+    meta.name ||
+    meta.user_name ||
+    (u.email ? u.email.split("@")[0] : null) ||
+    "Anonymous";
+
+  return {
+    id: u.id,
+    name,
+    email: u.email,
+    isGuest: false,
   };
-
-  const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error("Logout error:", error.message);
-      setError(error.message);
-      return;
-    }
-    setUser(null);
-    setError(null);
-  };
-
-  const clearError = () => setError(null);
-
-  return (
-    <AuthContext.Provider value={{ user, error, signUp, signIn, signOut, clearError }}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
-
-export const useAuth = () => {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
-  return ctx;
-};
+}
