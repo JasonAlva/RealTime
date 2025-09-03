@@ -73,6 +73,7 @@ export default function EditorPage() {
     },
   ]);
   const [output, setOutput] = useState<string>("");
+  const [programInput, setProgramInput] = useState<string>("");
   const [chatMessages, setChatMessages] = useState<
     Array<{ id: string; user: string; message: string; timestamp: Date }>
   >([]);
@@ -113,8 +114,9 @@ export default function EditorPage() {
   };
 
   // Capture selection changes
-  const handleMount: OnMount = (editor, monaco) => {
+  const handleMount: OnMount = (editor, _monaco) => {
     editorRef.current = editor;
+    void _monaco;
 
     editor.onDidChangeCursorSelection((e) => {
       const range = e.selection;
@@ -389,11 +391,11 @@ export default function EditorPage() {
 
         {/* Right Side - I/O and Chat */}
         <div className="w-96 border-l bg-muted/30">
-          <Tabs defaultValue="output" className="h-full flex flex-col">
+          <Tabs defaultValue="console" className="h-full flex flex-col">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="output" className="flex items-center gap-2">
+              <TabsTrigger value="console" className="flex items-center gap-2">
                 <Terminal className="h-4 w-4" />
-                Output
+                Console
               </TabsTrigger>
               <TabsTrigger value="chat" className="flex items-center gap-2">
                 <MessageCircle className="h-4 w-4" />
@@ -401,16 +403,30 @@ export default function EditorPage() {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="output" className="flex-1 p-4">
-              <Card className="h-full">
+            <TabsContent value="console" className="flex-1 p-4">
+              <Card className="h-full flex flex-col">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">Console Output</CardTitle>
+                  <CardTitle className="text-sm">Console</CardTitle>
                 </CardHeader>
-                <CardContent className="flex-1">
-                  <div className="bg-black text-green-400 p-3 rounded font-mono text-sm h-full overflow-auto">
-                    <pre>
-                      {output || "No output yet. Run your code to see results."}
-                    </pre>
+                <CardContent className="flex-1 flex flex-col gap-4">
+                  <div className="flex-1 flex flex-col">
+                    <div className="text-xs font-medium mb-2">Input</div>
+                    <textarea
+                      value={programInput}
+                      onChange={(e) => setProgramInput(e.target.value)}
+                      placeholder="Type input for your program..."
+                      className="bg-muted p-3 rounded font-mono text-sm h-full resize-none outline-none"
+                    />
+                  </div>
+                  <Separator />
+                  <div className="flex-1 flex flex-col">
+                    <div className="text-xs font-medium mb-2">Output</div>
+                    <div className="bg-muted p-3 rounded font-mono text-sm h-full overflow-auto">
+                      <pre>
+                        {output ||
+                          "No output yet. Run your code to see results."}
+                      </pre>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

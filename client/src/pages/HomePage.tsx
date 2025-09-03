@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import {
@@ -9,11 +8,13 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
+import { NavigationBar } from "@/components/NavigationBar";
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
       {/* Hero Section */}
+      <NavigationBar />
       <section className="relative overflow-hidden px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <Badge variant="secondary" className="mb-4">
