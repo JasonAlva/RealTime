@@ -52,3 +52,60 @@ function toSessionUser(session: Session | null): SessionUser | null {
     isGuest: false,
   };
 }
+
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [session, setSession] = useState<Session | null>(null);
+  const [initialized, setInitialized] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      setSession(data.session ?? null);
+      setInitialized(true);
+    })();
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+      setSession(s ?? null);
+    });
+
+    return () => {
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+  const user = useMemo<SessionUser | null>(() => {
+    const su = toSessionUser(session);
+    if (su) {
+      return su;
+    }
+    if (!initialized) {
+      return null;
+    }
+    return makeGuestUser();
+  }, [session, initialized]);
+  const signInWithGoogle = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
+  };
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, signInWithGoogle, signOut }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  const ctx = useContext(AuthContext);
+  if (!ctx) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return ctx;
+};
