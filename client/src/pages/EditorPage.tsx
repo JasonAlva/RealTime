@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, act } from "react";
 import { io, Socket } from "socket.io-client";
 import Editor from "@monaco-editor/react";
 import type * as MonacoNS from "monaco-editor";
@@ -29,6 +29,7 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -326,10 +327,20 @@ export default function EditorPage() {
             </Button>
 
             {/* Join */}
-            <Button variant="outline">
-              <Users className="h-4 w-4 mr-2" />
-              Join
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">Basic</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  {activeUsers.map((u) => (
+                    <DropdownMenuItem key={u.id}>{u.name}</DropdownMenuItem>
+                  ))}
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             {/* Invite */}
             <Button variant="outline">
