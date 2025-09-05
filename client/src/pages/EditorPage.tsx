@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { io, Socket } from "socket.io-client";
 import Editor from "@monaco-editor/react";
+import type * as MonacoNS from "monaco-editor";
 import type { OnMount } from "@monaco-editor/react";
 import { useAuth } from "../context/AuthContext";
 import { Button } from "../components/ui/button";
@@ -57,9 +58,33 @@ interface FileTab {
   language: string;
   content: string;
 }
+interface ActiveUser {
+  id: string;
+  name: string;
+}
+const COLORS = [
+  "#FF6B6B",
+  "#4D96FF",
+  "#6BCB77",
+  "#FFD93D",
+  "#B980F0",
+  "#00C9A7",
+  "#F97316",
+  "#22C55E",
+  "#06B6D4",
+  "#A78BFA",
+];
+
+const colorMap: Record<string, string> = {};
+const ensureColor = (id: string) => {
+  if (!colorMap[id])
+    colorMap[id] = COLORS[Object.keys(colorMap).length % COLORS.length];
+  return colorMap[id];
+};
 
 export default function EditorPage() {
   const { user } = useAuth();
+
   const [code, setCode] = useState<string>("");
   const [selectedLanguage, setSelectedLanguage] =
     useState<string>("javascript");
@@ -80,6 +105,7 @@ export default function EditorPage() {
   const [chatInput, setChatInput] = useState<string>("");
   const editorRef = useRef<any>(null);
   const decorationsRef = useRef<string[]>([]);
+  const [activeUsers, setActiveUsers] = useState<ActiveUser[]>([]);
 
   // Map of other users' highlights
   const [userSelections, setUserSelections] = useState<Record<string, any>>({});
@@ -87,9 +113,24 @@ export default function EditorPage() {
   useEffect(() => {
     if (!user) return;
 
-    socket = io("http://localhost:8080");
+    socket = io("http://localhost:8080", {
+      transports: ["websocket"],
+      query: { userId: user.id, name: user.name },
+    });
 
-    socket.on("connect", () => console.log("Connected:", socket.id));
+    socket.on("connect", () => {
+      const color = ensureColor(user.id);
+      socket!.emit("join", {
+        room: "default",
+        userId: user.id,
+        name: user.name,
+        color,
+      });
+    });
+
+    socket.on("doc:sync", (serverCode: string) => setCode(serverCode ?? ""));
+    socket.on("doc:update", (serverCode: string) => setCode(serverCode ?? ""));
+    socket.on("users", (users: ActiveUser[]) => setActiveUsers(users));
 
     socket.on("text-update", (data: string) => {
       setCode(data);
@@ -372,7 +413,7 @@ export default function EditorPage() {
             <Editor
               height="100%"
               language={selectedLanguage}
-              value={currentFile?.content || code}
+              value={code}
               theme="vs-dark"
               onChange={handleEditorChange}
               onMount={handleMount}
