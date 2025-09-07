@@ -16,6 +16,12 @@ interface User {
   id: string;
   name: string;
 }
+interface chatUser {
+  id: string;
+  name: string;
+  message: string;
+  timestamp: Date;
+}
 
 const roomUsers: Record<string, User[]> = {};
 
@@ -29,7 +35,7 @@ io.on("connection", (socket: Socket) => {
 
   // fallback if missing
   const safeUser: User = {
-    id: userId ?? socket.id, // fallback to socket.id
+    id: userId ?? socket.id,
     name: name ?? "Anonymous",
   };
 
@@ -42,12 +48,16 @@ io.on("connection", (socket: Socket) => {
 
   socket.join(room);
 
-  // notify others
   io.to(room).emit("users", roomUsers[room]);
 
   socket.on("text-update", (data: string) => {
     console.log("Received:", data);
     socket.to(room).emit("text-update", data);
+  });
+
+  socket.on("chat-update", (data: chatUser) => {
+    console.log("chat:", data);
+    socket.to(room).emit("chat-update", data);
   });
 
   socket.on("disconnect", () => {

@@ -63,6 +63,12 @@ interface ActiveUser {
   id: string;
   name: string;
 }
+interface chatUser {
+  id: string;
+  name: string;
+  message: string;
+  timestamp: Date;
+}
 const COLORS = [
   "#FF6B6B",
   "#4D96FF",
@@ -100,9 +106,7 @@ export default function EditorPage() {
   ]);
   const [output, setOutput] = useState<string>("");
   const [programInput, setProgramInput] = useState<string>("");
-  const [chatMessages, setChatMessages] = useState<
-    Array<{ id: string; user: string; message: string; timestamp: Date }>
-  >([]);
+  const [chatMessages, setChatMessages] = useState<chatUser[]>([]);
   const [chatInput, setChatInput] = useState<string>("");
   const editorRef = useRef<any>(null);
   const decorationsRef = useRef<string[]>([]);
@@ -132,6 +136,9 @@ export default function EditorPage() {
     socket.on("doc:sync", (serverCode: string) => setCode(serverCode ?? ""));
     socket.on("doc:update", (serverCode: string) => setCode(serverCode ?? ""));
     socket.on("users", (users: ActiveUser[]) => setActiveUsers(users));
+    socket.on("chat-update", (chat: chatUser) =>
+      setChatMessages((prev) => [...prev, chat])
+    );
 
     socket.on("text-update", (data: string) => {
       setCode(data);
@@ -224,12 +231,13 @@ export default function EditorPage() {
   const handleSendChat = () => {
     if (chatInput.trim()) {
       const newMessage = {
-        id: Date.now().toString(),
-        user: user?.email || "Anonymous",
+        id: user?.id || Date.now().toString(),
+        name: user?.name || "Anonymous",
         message: chatInput,
         timestamp: new Date(),
       };
       setChatMessages((prev) => [...prev, newMessage]);
+      socket.emit("chat-update", newMessage);
       setChatInput("");
     }
   };
@@ -495,10 +503,10 @@ export default function EditorPage() {
                       <div key={message.id} className="flex flex-col">
                         <div className="flex items-center gap-2">
                           <Badge variant="secondary" className="text-xs">
-                            {message.user}
+                            {message.name}
                           </Badge>
                           <span className="text-xs text-muted-foreground">
-                            {message.timestamp.toLocaleTimeString()}
+                            {new Date(message.timestamp).toLocaleTimeString()}
                           </span>
                         </div>
                         <p className="text-sm mt-1 p-2 bg-muted rounded">
