@@ -1,7 +1,6 @@
-import { useState, useEffect, useRef, useMemo, act } from "react";
+import { useState, useEffect, useRef } from "react";
 import { io, Socket } from "socket.io-client";
 import Editor from "@monaco-editor/react";
-import type * as MonacoNS from "monaco-editor";
 import type { OnMount } from "@monaco-editor/react";
 import { useAuth } from "../context/AuthContext";
 import { Button } from "../components/ui/button";
@@ -38,7 +37,6 @@ import {
 import {
   Play,
   Download,
-  Users,
   UserPlus,
   Settings,
   User,
@@ -109,6 +107,7 @@ export default function EditorPage() {
   const [programInput, setProgramInput] = useState<string>("");
   const [chatMessages, setChatMessages] = useState<chatUser[]>([]);
   const [chatInput, setChatInput] = useState<string>("");
+  const [monacoTheme, setMonacoTheme] = useState<string>("vs-dark");
   const editorRef = useRef<any>(null);
   const decorationsRef = useRef<string[]>([]);
   const [activeUsers, setActiveUsers] = useState<ActiveUser[]>([]);
@@ -117,14 +116,11 @@ export default function EditorPage() {
   const [userSelections, setUserSelections] = useState<Record<string, any>>({});
 
   const [copied, setCopied] = useState<boolean>(false);
-  const [token, setToken] = useState<string>("");
 
   const fetchAndCopy = async () => {
     try {
       const res = await fetch("http://localhost:8080/token"); // your backend
       const data = await res.json();
-
-      setToken(data.token);
 
       await navigator.clipboard.writeText(data.token);
       setCopied(true);
@@ -319,7 +315,7 @@ export default function EditorPage() {
     );
   }
 
-  const currentFile = files.find((f) => f.id === activeTab);
+  // const currentFile = files.find((f) => f.id === activeTab);
 
   return (
     <div className="h-screen flex flex-col bg-background">
@@ -353,6 +349,18 @@ export default function EditorPage() {
               <SelectItem value="go">Go</SelectItem>
               <SelectItem value="rust">Rust</SelectItem>
               <SelectItem value="typescript">TypeScript</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Theme Selector */}
+          <Select value={monacoTheme} onValueChange={setMonacoTheme}>
+            <SelectTrigger className="w-36">
+              <SelectValue placeholder="Theme" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="vs-dark">Dark</SelectItem>
+              <SelectItem value="vs-light">Light</SelectItem>
+              <SelectItem value="hc-black">High Contrast</SelectItem>
             </SelectContent>
           </Select>
 
@@ -471,7 +479,7 @@ export default function EditorPage() {
               height="100%"
               language={selectedLanguage}
               value={code}
-              theme="vs-dark"
+              theme={monacoTheme}
               onChange={handleEditorChange}
               onMount={handleMount}
               options={{
