@@ -1,4 +1,5 @@
 import { Route, Routes } from "react-router-dom";
+import { Toaster } from "./components/ui/sonner";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import EditorPage from "./pages/EditorPage";
@@ -17,6 +18,7 @@ function App() {
           </main>
         </div>
       </div>
+      <Toaster />
     </>
   );
 }

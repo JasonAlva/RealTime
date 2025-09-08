@@ -2,6 +2,7 @@ import express from "express";
 import http from "http";
 import { Server, Socket } from "socket.io";
 import cors from "cors";
+import crypto from "crypto";
 
 const app = express();
 const server = http.createServer(app);
@@ -11,7 +12,13 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
   },
 });
-
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"],
+    credentials: true,
+  })
+);
 interface User {
   id: string;
   name: string;
@@ -64,6 +71,10 @@ io.on("connection", (socket: Socket) => {
     roomUsers[room] = roomUsers[room]!.filter((u) => u.id !== safeUser.id);
     io.to(room).emit("users", roomUsers[room]);
   });
+});
+app.get("/token", (req, res) => {
+  const token = crypto.randomBytes(16).toString("hex"); // secure token
+  res.json({ token });
 });
 
 server.listen(8080, () =>

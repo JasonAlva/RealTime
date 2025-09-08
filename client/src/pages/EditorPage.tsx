@@ -50,6 +50,7 @@ import {
   FileText,
   Plus,
 } from "lucide-react";
+import { toast } from "sonner";
 
 let socket: Socket;
 
@@ -115,6 +116,43 @@ export default function EditorPage() {
   // Map of other users' highlights
   const [userSelections, setUserSelections] = useState<Record<string, any>>({});
 
+  const [copied, setCopied] = useState<boolean>(false);
+  const [token, setToken] = useState<string>("");
+
+  const fetchAndCopy = async () => {
+    try {
+      const res = await fetch("http://localhost:8080/token"); // your backend
+      const data = await res.json();
+
+      setToken(data.token);
+
+      await navigator.clipboard.writeText(data.token);
+      setCopied(true);
+      toast.success("Token Copied to clipboard", {
+        style: {
+          "--normal-bg":
+            "color-mix(in oklab, light-dark(var(--color-green-600), var(--color-green-400)) 10%, var(--background))",
+          "--normal-text":
+            "light-dark(var(--color-green-600), var(--color-green-400))",
+          "--normal-border":
+            "light-dark(var(--color-green-600), var(--color-green-400))",
+        } as React.CSSProperties,
+      });
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Error fetching or copying:", err);
+      toast.warning("Oops, Couldnt copy the token", {
+        style: {
+          "--normal-bg":
+            "color-mix(in oklab, light-dark(var(--color-amber-600), var(--color-amber-400)) 10%, var(--background))",
+          "--normal-text":
+            "light-dark(var(--color-amber-600), var(--color-amber-400))",
+          "--normal-border":
+            "light-dark(var(--color-amber-600), var(--color-amber-400))",
+        } as React.CSSProperties,
+      });
+    }
+  };
   useEffect(() => {
     if (!user) return;
 
@@ -351,7 +389,7 @@ export default function EditorPage() {
             </DropdownMenu>
 
             {/* Invite */}
-            <Button variant="outline">
+            <Button variant="outline" onClick={fetchAndCopy} disabled={copied}>
               <UserPlus className="h-4 w-4 mr-2" />
               Invite
             </Button>
@@ -492,7 +530,11 @@ export default function EditorPage() {
               </Card>
             </TabsContent>
 
-            <TabsContent value="chat" className="flex-1 p-4">
+            <TabsContent
+              value="chat"
+              className="flex-1 
+             p-4"
+            >
               <Card className="h-full flex flex-col">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm">Team Chat</CardTitle>
