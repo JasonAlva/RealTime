@@ -1,8 +1,10 @@
+import "dotenv/config";
 import express from "express";
 import http from "http";
 import { Server, Socket } from "socket.io";
 import cors from "cors";
 import crypto from "crypto";
+import axios from "axios";
 
 const app = express();
 const server = http.createServer(app);
@@ -19,6 +21,7 @@ app.use(
     credentials: true,
   })
 );
+app.use(express.json());
 interface User {
   id: string;
   name: string;
@@ -75,6 +78,40 @@ io.on("connection", (socket: Socket) => {
 app.get("/token", (req, res) => {
   const token = crypto.randomBytes(16).toString("hex"); // secure token
   res.json({ token });
+});
+
+app.post("/api/run", async (req, res) => {
+  try {
+    const { source_code, language_id } = req.body;
+    if (!process.env.RAPIDAPI_KEY) {
+      return res.status(500).json({ error: "RAPIDAPI_KEY is not set" });
+    }
+
+    const { data } = await axios.post(
+      "https://judge0-ce.p.rapidapi.com/submissions",
+      {
+        source_code,
+        language_id,
+        stdin: "",
+      },
+      {
+        headers: {
+          "content-type": "application/json",
+          "x-rapidapi-host": "judge0-ce.p.rapidapi.com",
+          "x-rapidapi-key": process.env.RAPIDAPI_KEY!,
+        },
+        params: { base64_encoded: "false", wait: "true" },
+        timeout: 20000,
+      }
+    );
+    res.json(data);
+  } catch (err) {
+    const anyErr: any = err;
+    const status = anyErr?.response?.status || 500;
+    const msg = anyErr?.response?.data || anyErr?.message || "execution failed";
+    console.error("/api/run error:", status, msg);
+    res.status(500).json({ error: msg });
+  }
 });
 
 server.listen(8080, () =>

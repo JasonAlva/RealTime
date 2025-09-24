@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../components/ui/card";
+import axios from "axios";
 import { Badge } from "../components/ui/badge";
 import { Separator } from "../components/ui/separator";
 import {
@@ -35,6 +36,14 @@ import {
   DropdownMenuTrigger,
 } from "../components/ui/dropdown-menu";
 import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "../components/ui/sheet";
+import { HexColorPicker } from "react-colorful";
+import {
   Play,
   Download,
   UserPlus,
@@ -47,6 +56,7 @@ import {
   X,
   FileText,
   Plus,
+  Users,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -108,6 +118,7 @@ export default function EditorPage() {
   const [chatMessages, setChatMessages] = useState<chatUser[]>([]);
   const [chatInput, setChatInput] = useState<string>("");
   const [monacoTheme, setMonacoTheme] = useState<string>("vs-dark");
+  const [accentColor, setAccentColor] = useState<string>("#22c55e");
   const editorRef = useRef<any>(null);
   const decorationsRef = useRef<string[]>([]);
   const [activeUsers, setActiveUsers] = useState<ActiveUser[]>([]);
@@ -240,12 +251,22 @@ export default function EditorPage() {
     );
   }, [userSelections]);
 
-  const handleRunCode = () => {
-    // Simulate running code
-    setOutput("Running code...\n");
-    setTimeout(() => {
-      setOutput((prev) => prev + "Hello, World!\nCode executed successfully!");
-    }, 1000);
+  const handleRunCode = async (source_code: string, language_id: number) => {
+    try {
+      setOutput("compiling...");
+      const response = await axios.post("http://localhost:8080/api/run", {
+        source_code: source_code,
+        language_id: language_id,
+      });
+
+      const result = response.data;
+      setOutput(result.stdout);
+      console.log("Output:", result.stdout);
+      console.log("Error:", result.stderr);
+      console.log("CPU Time:", result.time);
+    } catch (err) {
+      console.error("Error running code:", err);
+    }
   };
 
   const handleDownloadCode = () => {
@@ -367,7 +388,12 @@ export default function EditorPage() {
           <div className="ml-auto flex items-center gap-2">
             {/* Run Button */}
             <Button
-              onClick={handleRunCode}
+              onClick={() =>
+                handleRunCode(
+                  '#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << "Hello, Judge0!" << endl;\n    return 0;\n}',
+                  52
+                )
+              }
               className="bg-green-600 hover:bg-green-700"
             >
               <Play className="h-4 w-4 mr-2" />
@@ -380,17 +406,28 @@ export default function EditorPage() {
               Download
             </Button>
 
-            {/* Join */}
+            {/* Online Users */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline">Basic</Button>
+                <Button variant="outline" className="gap-2">
+                  <span className="relative inline-flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-600"></span>
+                  </span>
+                  <Users className="h-4 w-4" />
+                  <span>Online ({activeUsers.length})</span>
+                </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
                 <DropdownMenuGroup>
                   {activeUsers.map((u) => (
-                    <DropdownMenuItem key={u.id}>{u.name}</DropdownMenuItem>
+                    <DropdownMenuItem
+                      key={u.id}
+                      className="flex items-center gap-2"
+                    >
+                      <span className="inline-flex h-2 w-2 rounded-full bg-green-500" />
+                      <span>{u.name}</span>
+                    </DropdownMenuItem>
                   ))}
                 </DropdownMenuGroup>
               </DropdownMenuContent>
@@ -403,15 +440,48 @@ export default function EditorPage() {
             </Button>
 
             {/* Settings */}
-            <Button variant="ghost" size="icon">
-              <Settings className="h-4 w-4" />
-            </Button>
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative">
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-80">
+                <SheetHeader>
+                  <SheetTitle>Settings</SheetTitle>
+                </SheetHeader>
+                <div className="p-4 space-y-4">
+                  <div>
+                    <div className="mb-2 text-sm font-medium">Accent Color</div>
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="h-6 w-6 rounded-full border"
+                        style={{ backgroundColor: accentColor }}
+                        aria-label="Selected color"
+                        title={accentColor}
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        {accentColor}
+                      </span>
+                    </div>
+                  </div>
+                  <HexColorPicker
+                    color={accentColor}
+                    onChange={setAccentColor}
+                  />
+                </div>
+              </SheetContent>
+            </Sheet>
 
             {/* Profile/Login */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" className="relative">
                   <User className="h-4 w-4" />
+                  <span
+                    className="pointer-events-none absolute -right-0.5 -bottom-0.5 h-2.5 w-2.5 rounded-full border border-background"
+                    style={{ backgroundColor: accentColor }}
+                  />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
