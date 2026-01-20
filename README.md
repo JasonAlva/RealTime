@@ -1,5 +1,5 @@
 # RealTime
-[![Ask DeepWiki](https://devin.ai/assets/askdeepwiki.png)](https://deepwiki.com/JasonAlva/RealTime)
+
 
 RealTime is an AI-enhanced collaborative coding platform designed for seamless real-time teamwork. It provides a shared Monaco Editor environment, live cursor tracking, code execution, and an integrated chat, all powered by a Node.js backend and a React frontend.
 
